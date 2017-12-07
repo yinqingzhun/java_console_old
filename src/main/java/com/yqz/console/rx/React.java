@@ -1,31 +1,25 @@
 package com.yqz.console.rx;
 
-import java.net.URI;
-import java.security.PublicKey;
-import java.time.Duration;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
-
-import com.sun.javafx.scene.control.skin.VirtualFlow;
 import org.reactivestreams.Subscription;
 import reactor.core.Exceptions;
 import reactor.core.publisher.*;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.context.Context;
 
+import java.time.Duration;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
+
 public class React {
     public static void main(String[] args) throws InterruptedException {
 
-        SampleSubscriber<Integer> ss = new SampleSubscriber<Integer>();
-        Flux<Integer> ints = Flux.range(1, 4);
-        ints.subscribe(i -> System.out.println(i),
-                error -> System.err.println("Error " + error),
-                () -> {System.out.println("Done");},
-                s -> ss.request(10));
-        ints.subscribe(ss);
 
         // Flux.range(1, 10).then().subscribe(p -> System.out.println("next: " +
         // new Date()),
@@ -177,10 +171,25 @@ public class React {
         // Thread.sleep(3000);
 
 
-        //create();
+        create();
 
         System.out.println("exit");
 
+    }
+
+    public static void coreSubsciber() {
+        SampleSubscriber<Integer> ss = new SampleSubscriber<Integer>();
+        Flux<Integer> ints = Flux.range(1, 4);
+        ints.subscribe(i -> System.out.println("Next->" + i),
+                error -> System.err.println("->Error " + error),
+                () -> {
+                    System.out.println("->Done");
+                }
+                , s -> {
+                    ss.request(10);
+                }
+        );
+        ints.subscribe(ss);
     }
 
 
@@ -224,15 +233,15 @@ public class React {
                 FluxSink.OverflowStrategy.LATEST);
         flux.log();
 //        flux.subscribe(System.out::println, System.out::println, () -> System.out.println("completion"), p -> p.request(10));
-        Flux.range(1,10).subscribe(new BaseSubscriber<Integer>() {
+        Flux.range(1, 10).subscribe(new BaseSubscriber<Integer>() {
             public void hookOnSubscribe(Subscription subscription) {
                 System.out.println("Subscribed");
                 request(1);
             }
 
             public void hookOnNext(Integer value) {
-                System.out.println("rcv: "+value);
-                if(value>5)
+                System.out.println("rcv: " + value);
+                if (value > 15)
                     cancel();
 
                 request(1);
@@ -296,6 +305,22 @@ public class React {
         void onDataChunk(List<T> chunk);
 
         void processComplete();
+    }
+
+    public static void generate() {
+        SampleSubscriber<String> ss = new SampleSubscriber<>();
+        Flux<String> flux = Flux.generate(
+                AtomicLong::new,
+                (state, sink) -> {
+                    long i = state.getAndIncrement();
+                    sink.next("3 x " + i + " = " + 3 * i);
+                    if (i == 10) sink.complete();
+                    return state;
+                }, (state) -> System.out.println("state: " + state));
+
+        flux. subscribe(ss);
+
+
     }
 
     public static void window() {
@@ -449,6 +474,7 @@ public class React {
     }
 
     public static class SampleSubscriber<T> extends BaseSubscriber<T> {
+        Random random = new Random();
 
         public void hookOnSubscribe(Subscription subscription) {
             System.out.println("Subscribed");
@@ -456,8 +482,16 @@ public class React {
         }
 
         public void hookOnNext(T value) {
-            System.out.println("hookOnNext:"+value);
+            System.out.println("hookOnNext:" + value);
             request(1);
+            try {
+
+                int n = random.nextInt(3000);
+                System.out.println("sleep:" + n / 1000.0);
+                Thread.sleep(n);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         /**
