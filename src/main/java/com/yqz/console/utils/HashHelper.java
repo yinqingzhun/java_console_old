@@ -1,9 +1,11 @@
 package com.yqz.console.utils;
 
+import com.sun.org.apache.bcel.internal.generic.RETURN;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,7 +27,8 @@ public class HashHelper {
             while ((len = ins.read(buffer)) != -1) {
                 md5.update(buffer, 0, len);
             }
-            return DigestUtils.md5Hex(md5.digest());
+            return  DatatypeConverter.printHexBinary(md5.digest());
+            //return DigestUtils.md5Hex(md5.digest());
         } catch (Exception e) {
             logger.warn(e.getMessage());
             try {

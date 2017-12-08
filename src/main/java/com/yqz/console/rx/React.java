@@ -1,219 +1,155 @@
 package com.yqz.console.rx;
 
+import com.yqz.console.HttpHelper;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.StopWatch;
 import reactor.core.Exceptions;
 import reactor.core.publisher.*;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.context.Context;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public class React {
+    static Logger logger = LoggerFactory.getLogger(React.class);
+
     public static void main(String[] args) throws InterruptedException {
 
-
-        // Flux.range(1, 10).then().subscribe(p -> System.out.println("next: " +
-        // new Date()),
-        // p -> System.out.println("error: " + new Date()), () ->
-        // System.out.println("complete: " + new Date()));
-
-        // Flux.fromStream(Stream.generate(() -> System.currentTimeMillis()))
-        // .zipWith(Flux.interval(Duration.ofSeconds(1))).take(5).map(p ->
-        // p.getT1() ).then().subscribe((s -> System.out.println(s)));
-        // Thread.sleep(1000000);
-
-        // final String url = "http://www.baidu.com";
-        // final String HTTP_CORRELATION_ID =
-        // "reactive.http.library.correlationId";
-        // Mono<Tuple2<String, java.util.Optional<Object>>> dataAndContext =
-        // Mono.just(HTTP_CORRELATION_ID)
-        // .zipWith(Mono.subscriberContext().map(c ->
-        // c.getOrEmpty(HTTP_CORRELATION_ID)));
-        //
-        // dataAndContext.handle((dac, sink) -> {
-        //
-        // if (dac.getT2().isPresent()) {
-        // sink.next("PUT <" + dac.getT1() + "> sent to " + url + " with header
-        // X-Correlation-ID = "
-        // + dac.getT2().get());
-        // } else {
-        // sink.next("PUT <" + dac.getT1() + "> sent to " + url);
-        // }
-        // sink.complete();
-        // }).map(msg -> Tuples.of(200,
-        // msg)).subscriberContext(Context.of(HTTP_CORRELATION_ID,
-        // "2-j3r9afaf92j-afkaf"))
-        // .filter(t -> t.getT1() <
-        // 300).map(Tuple2::getT2).subscribe(System.out::println);
-
-        // Flux.range(1, 20000)
-        // .parallel() .runOn(Schedulers.parallel())
-        // .subscribe(i ->
-        // System.out.println(Thread.currentThread().getName() + " -> " + i));
-
-        // Flux.just(1, 3, 5, 2, 4, 6, 11, 12, 13)
-        // .windowWhile(i -> i % 2 == 0)
-        // //.concatMap(g -> g.defaultIfEmpty(-1)) //show empty windows as -1
-        // //.map(flux->flux.toStream().toArray())
-        // .subscribe(a->System.out.println("->"+a));
-
-        // Flux.just(1, 3, 5, 2, 4, 6, 11, 12, 13).groupBy(i -> i % 2 == 0 ?
-        // "even" : "odd")
-        // .concatMap(g -> g.defaultIfEmpty(-1) // if empty groups, show them
-        // .map(String::valueOf) // map to string
-        // .startWith(g.key())
-        // )
-        // .subscribe(a->System.out.println("->"+a)); // start with the group's
-        // key
-
-        // Flux<Integer> source = Flux.range(1, 3).doOnSubscribe(s ->
-        // System.out.println("subscribed to source"));
-        //
-        // Flux<Integer> co = source.publish() .refCount(2);
-        //
-        // co.subscribe(System.out::println, e -> {
-        // }, () -> {
-        // });
-        // co.subscribe(System.out::println, e -> {
-        // }, () -> {
-        // });
-        //
-        // System.out.println("done subscribing");
-        // Thread.sleep(500);
-        // System.out.println("will now connect");
-
-        // co.connect();
-
-        // UnicastProcessor<String> hotSource = UnicastProcessor.create();
-        //
-        // Flux<String> hotFlux = hotSource.publish()
-        // .autoConnect()
-        // .map(String::toUpperCase);
-        //
-        //
-        // hotFlux.subscribe(d -> System.out.println("Subscriber 1 to Hot
-        // Source: "+d));
-        //
-        // hotSource.onNext("blue");
-        // hotSource.onNext("green");
-        //
-        // hotFlux.subscribe(d -> System.out.println("Subscriber 2 to Hot
-        // Source: "+d));
-        //
-        // hotSource.onNext("orange");
-        // hotSource.onNext("purple");
-        // hotSource.onComplete();
-
-        // SampleSubscriber<Integer> ss = new SampleSubscriber<Integer>();
-        // Flux<Integer> ints = Flux.range(1, 4);
-        // ints.subscribe(i -> System.out.println(i), error ->
-        // System.err.println("Error " + error), () -> {
-        // System.out.println("Done");
-        // }, s -> ss.request(10));
-        // ints.subscribe(ss);
-
-        // Flux<Integer> flux = Flux.generate(AtomicInteger::new, (state, sink)
-        // -> {
-        // int i = state.getAndIncrement();
-        // sink.next(i);
-        // if (i == 10)
-        // sink.complete();
-        // return state;
-        // }, (state) -> System.out.println("state: " + state));
-        // flux.subscribe(System.out::println);
-
-        // CompletableFuture.completedFuture(1).thenAccept((s) ->
-        // System.out.println(s));
-        //
-        // String result = CompletableFuture.supplyAsync(() -> {
-        // try {
-        // Thread.sleep(100);
-        // } catch (InterruptedException e) {
-        // e.printStackTrace();
-        // }
-        // return "s1";
-        // }).thenComposeAsync((s) -> {
-        // return CompletableFuture.supplyAsync(() -> {
-        // return s + ",s2";
-        // });
-        // }).join();
-        // System.out.println(result);
-
-        // Thread.sleep(1000);
-        // Flux.interval(Duration.ofMillis(50)).subscribe(p ->
-        // System.out.println(p));// .toStream().forEach(System.out::println);
-
-
-        // Flux.range(1, 10000);
-        // Flux<HttpResult> blockingWrapper =
-        // Flux.defer(()->Mono.just(HttpHelper.httpGet("http://www.baidu.com")));
-        // blockingWrapper.subscribeOn(Schedulers.elastic()).subscribe(p -> {
-        // System.out.printf("[SUBSCRIBE-1]-thread: %s, code: %s\r\nbody: %s",
-        // Thread.currentThread().getName(), p.getCode(),
-        // p.getBody());
-        // });
-        // Thread.sleep(1000);
-        // blockingWrapper=blockingWrapper.concatWith(Mono.just(HttpHelper.httpGet("http://www.BAIDU.com")));
-        // blockingWrapper.subscribeOn(Schedulers.elastic()).subscribe(p -> {
-        // System.out.printf("[SUBSCRIBE-2]-thread: %s, code: %s\r\nbody: %s",
-        // Thread.currentThread().getName(), p.getCode(),
-        // p.getBody());
-        // });
-        // Thread.sleep(3000);
-
-
-        create();
 
         System.out.println("exit");
 
     }
 
-    public static void coreSubsciber() {
+    public static void zipWidth() {
+        Flux.fromStream(Stream.generate(() -> System.currentTimeMillis()))
+                .zipWith(Flux.interval(Duration.ofSeconds(1)))
+                .take(2)
+                .map(p -> p.getT1())
+                .then()
+                .subscribe(s -> System.out.println(s), System.out::println, () -> System.out.println("completion"));
+        try {
+            Thread.sleep(2100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void context() {
+        final String url = "http://www.baidu.com";
+        final String HTTP_CORRELATION_ID = "reactive.http.library.correlationId";
+        Mono<Tuple2<String, Optional<Context>>> dataAndContext =
+                Mono.just(HTTP_CORRELATION_ID)
+                        .zipWith(Mono.subscriberContext().map(c -> c.getOrEmpty(HTTP_CORRELATION_ID)));
+
+        dataAndContext.handle((dac, sink) -> {
+            if (dac.getT2().isPresent()) {
+                sink.next("PUT <" + dac.getT1() + "> sent to " + url + " with header X-Correlation-ID = "
+                        + dac.getT2().get());
+            } else {
+                sink.next("PUT <" + dac.getT1() + "> sent to " + url);
+            }
+            sink.complete();
+        })
+                .map(msg -> Tuples.of(200, msg))
+                .subscriberContext(Context.of(HTTP_CORRELATION_ID, "2-j3r9afaf92j-afkaf"))
+                .filter(t -> t.getT1() < 300)
+                .map(Tuple2::getT2)
+                .subscribe(System.out::println);
+    }
+
+    public static void windowWhile() {
+        Flux.just(1, 3, 5, 2, 4, 6, 11, 12, 13)
+                .windowWhile(i -> i % 2 == 0)
+                .concatMap(g -> g.defaultIfEmpty(-1)) //show empty windows as -1
+                .subscribe(a -> System.out.println("->" + a));
+    }
+
+    public static void refCount() {
+        Flux<Integer> source = Flux.range(1, 3).doOnSubscribe(s ->
+                System.out.println("subscribed to source"));
+
+        Flux<Integer> co = source.publish().refCount(2);
+
+        co.subscribe(System.out::println, e -> {
+        }, () -> {
+        });
+        System.out.println("wait enough count subscribers...");
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("reach subscribing count soon.");
+        co.subscribe(System.out::println, e -> {
+        }, () -> {
+        });
+    }
+
+    public static void group() {
+        Flux.just(1, 3, 5, 2, 4, 6, 11, 12, 13).groupBy(i -> i % 2 == 0 ? "even" : "odd")
+                .concatMap(g -> g.defaultIfEmpty(-1) // if empty groups, show them
+                        .map(String::valueOf) // map to string
+                        .startWith(g.key())
+                )
+                .subscribe(a -> System.out.println(a)); // start with the group's key
+    }
+
+    public static void hotPublish() {
+        UnicastProcessor<String> hotSource = UnicastProcessor.create();
+
+        Flux<String> hotFlux = hotSource.publish()
+                .autoConnect()
+                .map(String::toUpperCase);
+
+
+        hotFlux.subscribe(d -> System.out.println("Subscriber 1 to Hot  Source: " + d));
+
+        hotSource.onNext("blue");
+        hotSource.onNext("green");
+
+        hotFlux.subscribe(d -> System.out.println("Subscriber 2 to Hot  Source: " + d));
+
+        hotSource.onNext("orange");
+        hotSource.onNext("purple");
+        hotSource.onComplete();
+    }
+
+    public static void lazyStream() {
+        //print from 1 to 10 one by one
+        Flux.range(1, 10).toStream().forEach(System.out::println);
+        //print from 1 indefinitely
+        Flux.interval(Duration.ofMillis(50)).toStream().forEach(System.out::println);
+    }
+
+    public static void requestData() {
         SampleSubscriber<Integer> ss = new SampleSubscriber<Integer>();
         Flux<Integer> ints = Flux.range(1, 4);
-        ints.subscribe(i -> System.out.println("Next->" + i),
-                error -> System.err.println("->Error " + error),
-                () -> {
-                    System.out.println("->Done");
-                }
-                , s -> {
-                    ss.request(10);
-                }
-        );
+//        ints.subscribe(i -> System.out.println("Next->" + i),
+//                error -> System.err.println("->Error " + error),
+//                () -> {
+//                    System.out.println("->Done");
+//                }
+//                , s -> {
+//                    ss.request(10);
+//                }
+//        );
         ints.subscribe(ss);
     }
 
-
-    public static void create() throws InterruptedException {
-
-//        Flux<String> bridge = Flux.create(sink -> {
-//            myEventProcessor.register(
-//                    new MyEventListener<String>() {
-//
-//                        public void onDataChunk(List<String> chunk) {
-//                            for (String s : chunk) {
-//                                sink.next(s);
-//                            }
-//                        }
-//
-//                        public void processComplete() {
-//                            sink.complete();
-//                        }
-//                    });
-//        });
+    public static void create1() throws InterruptedException {
         MessageProcessor myMessageProcessor = new MessageProcessor();
-
-        // myMessageProcessor.
-        Flux flux = Flux.create(sink -> {
+        Flux<String> flux = Flux.create(sink -> {
                     myMessageProcessor.register(
                             new MyMessageListener<String>() {
                                 public void onMessage(List<String> messages) {
@@ -222,18 +158,96 @@ public class React {
                                     }
                                 }
                             });
-//                    sink.onRequest(n -> {
-//                        List<String> messages = myMessageProcessor.request(n);
-//                        for (String s : messages) {
-//                            sink.next(s);
-//                        }
-//                    });
+                    sink.onRequest(n -> {
+                        List<String> messages = myMessageProcessor.request(n);
+                        for (String s : messages) {
+                            sink.next(s);
+                        }
+                    });
                 },
                 // Overflow (backpressure) handling, default is BUFFER
                 FluxSink.OverflowStrategy.LATEST);
         flux.log();
-//        flux.subscribe(System.out::println, System.out::println, () -> System.out.println("completion"), p -> p.request(10));
-        Flux.range(1, 10).subscribe(new BaseSubscriber<Integer>() {
+        flux.subscribe(System.out::println,
+                System.out::println,
+                () -> System.out.println("completion"),
+                p -> p.request(11));
+
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    myMessageProcessor.receive("hello");
+                }
+            }
+        };
+        thread.run();
+        thread.join();
+    }
+
+    public static void schedulers() {
+        StopWatch stopWatch1 = new StopWatch("A");
+        StopWatch stopWatch2 = new StopWatch("B");
+        stopWatch1.start();
+        stopWatch2.start();
+
+        Flux<Integer> flux = Flux.range(1, 5)
+                .publishOn(Schedulers.single())
+                .subscribeOn(Schedulers.elastic());
+        flux.subscribe(p -> {
+            System.out.println(Thread.currentThread().getName() + "-A," + p);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }, System.out::println, () -> {
+            stopWatch1.stop();
+            System.out.println("A time:" + stopWatch1.getTotalTimeMillis());
+        });
+        flux.subscribe(p -> {
+            System.out.println(Thread.currentThread().getName() + "-B," + p);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }, System.out::println, () -> {
+            stopWatch2.stop();
+            System.out.println("B time:" + stopWatch2.getTotalTimeMillis());
+        });
+
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //todo
+    public static void create() throws InterruptedException {
+//        MyEventProcessor myEventProcessor = new MyEventProcessor();
+//        Flux<Integer> bridge = Flux.create(sink -> {
+//            myEventProcessor.register(
+//                    new MyEventListener<Integer>() {
+//                        public void onDataChunk(List<Integer> chunk) {
+//                            for (Integer s : chunk) {
+//                                sink.next(s);
+//                            }
+//                        }
+//                        public void processComplete() {
+//                            sink.complete();
+//                        }
+//                    });
+//        });
+
+        Flux.range(1, 20).subscribe(new BaseSubscriber<Integer>() {
             public void hookOnSubscribe(Subscription subscription) {
                 System.out.println("Subscribed");
                 request(1);
@@ -241,36 +255,55 @@ public class React {
 
             public void hookOnNext(Integer value) {
                 System.out.println("rcv: " + value);
-                if (value > 15)
-                    cancel();
-
                 request(1);
-//                try {
-//                    Thread.sleep(1000);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
+                if (value > 10)
+                    cancel();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
             }
         });
 
+        Thread.sleep(100000);
 
-//        Thread thread = new Thread() {
-//            @Override
-//            public void run() {
-//                while (true) {
-//                    try {
-//                        Thread.sleep(1000);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                    myMessageProcessor.receive("hello");
-//                }
-//            }
-//        };
-//        thread.run();
-//
-//
-//        thread.join();
+    }
+
+    public static void coldAndHot() {
+        //cold: defer
+        //hot :just
+        Flux<HttpHelper.HttpResult> flux = Flux.defer(() -> Mono.just(HttpHelper.httpGet("http://www.baidu.com")))
+                .concatWith(Mono.just(HttpHelper.httpGet("http://www.sogou.com")))
+                .subscribeOn(Schedulers.elastic());
+        flux.subscribe(p -> {
+            logger.debug("[SUBSCRIBE-(1)]-thread: {}, code: {}, url: {}", Thread.currentThread().getName(), p.getCode(), p.getUrl());
+        });
+        flux.subscribe(p -> {
+            logger.debug("[SUBSCRIBE-(2)]-thread: {}, code: {}, url: {}", Thread.currentThread().getName(), p.getCode(), p.getUrl());
+        });
+    }
+
+    public static class MyEventProcessor {
+        List<MyEventListener> list = new ArrayList<>();
+
+        public <T> void register(MyEventListener<T> myEventListener) {
+            this.list.add(myEventListener);
+        }
+
+        public void triggerEvent(String... event) {
+            list.forEach(p -> {
+                List<String> msgs = Arrays.asList(event);
+                p.onDataChunk(msgs);
+            });
+        }
+
+        public void stopEvent() {
+            list.forEach(p -> {
+                p.processComplete();
+            });
+        }
     }
 
     public static class MessageProcessor {
@@ -297,6 +330,13 @@ public class React {
         }
     }
 
+    public static void parallel() {
+        Flux.range(1, 200)
+                .parallel().runOn(Schedulers.parallel())
+                .subscribe(i ->
+                        System.out.println(Thread.currentThread().getName() + " -> " + i));
+    }
+
     interface MyMessageListener<T> {
         public void onMessage(List<String> messages);
     }
@@ -316,10 +356,9 @@ public class React {
                     sink.next("3 x " + i + " = " + 3 * i);
                     if (i == 10) sink.complete();
                     return state;
-                }, (state) -> System.out.println("state: " + state));
+                }, (state) -> System.out.println("The generator has terminated or the downstream cancelled. The last state is: " + state));
 
-        flux. subscribe(ss);
-
+        flux.subscribe(ss);
 
     }
 
@@ -486,7 +525,7 @@ public class React {
             request(1);
             try {
 
-                int n = random.nextInt(3000);
+                int n = random.nextInt(1000);
                 System.out.println("sleep:" + n / 1000.0);
                 Thread.sleep(n);
             } catch (InterruptedException e) {
