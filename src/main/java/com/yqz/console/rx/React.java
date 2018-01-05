@@ -26,7 +26,7 @@ public class React {
 
     public static void main(String[] args) throws InterruptedException {
 
-
+        schedulers();
         System.out.println("exit");
 
     }
@@ -197,7 +197,7 @@ public class React {
         stopWatch2.start();
 
         Flux<Integer> flux = Flux.range(1, 5)
-                .publishOn(Schedulers.single())
+                .publishOn(Schedulers.parallel())
                 .subscribeOn(Schedulers.elastic());
         flux.subscribe(p -> {
             System.out.println(Thread.currentThread().getName() + "-A," + p);
@@ -331,7 +331,7 @@ public class React {
     }
 
     public static void parallel() {
-        Flux.range(1, 200)
+        Flux.range(1, 2000)
                 .parallel().runOn(Schedulers.parallel())
                 .subscribe(i ->
                         System.out.println(Thread.currentThread().getName() + " -> " + i));

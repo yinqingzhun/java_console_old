@@ -1,3 +1,6 @@
 /.idea
 /.settings
 /target
+/bin
+/.project
+/myApp.log
