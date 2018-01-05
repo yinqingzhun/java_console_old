@@ -33,4 +33,26 @@ public class PeriodicAtomicInteger {
     public String toString() {
         return super.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PeriodicAtomicInteger that = (PeriodicAtomicInteger) o;
+
+        if (timestamp != that.timestamp) return false;
+        if (tick != that.tick) return false;
+        if (!atomicInteger.equals(that.atomicInteger)) return false;
+        return timer.equals(that.timer);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = atomicInteger.hashCode();
+        result = 31 * result + (int) (timestamp ^ (timestamp >>> 32));
+        result = 31 * result + (int) (tick ^ (tick >>> 32));
+        result = 31 * result + timer.hashCode();
+        return result;
+    }
 }
