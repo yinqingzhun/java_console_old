@@ -1,58 +1,36 @@
 package com.yqz.console;
 
 
+import java.time.LocalDateTime;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PeriodicAtomicInteger {
 
-    private volatile AtomicInteger atomicInteger=new AtomicInteger();
-    private long timestamp=System.currentTimeMillis();
-    private long tick=0;
-    private Timer timer=new Timer();
+    private volatile AtomicInteger atomicInteger = new AtomicInteger();
+    private LocalDateTime startTime = LocalDateTime.now();
+    private long tick = 0;
+    private Timer timer = new Timer();
 
-    public PeriodicAtomicInteger(long tickInSeconds){
-        this.tick=tickInSeconds;
+    public PeriodicAtomicInteger(long tickInSeconds) {
+        this.tick = tickInSeconds;
 
-        TimerTask task=new TimerTask() {
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 atomicInteger.set(0);
+                startTime = LocalDateTime.now();
             }
-        };
-         timer.schedule(task,tickInSeconds*1000,tickInSeconds*1000);
-
+        }, tickInSeconds * 1000, tickInSeconds * 1000);
     }
 
-    public AtomicInteger getAtomicInteger(){
+    public AtomicInteger getAtomicInteger() {
         return this.atomicInteger;
     }
 
-
-
-
-
-
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        PeriodicAtomicInteger that = (PeriodicAtomicInteger) o;
-
-        if (timestamp != that.timestamp) return false;
-        if (tick != that.tick) return false;
-        if (!atomicInteger.equals(that.atomicInteger)) return false;
-        return timer.equals(that.timer);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = atomicInteger.hashCode();
-        result = 31 * result + (int) (timestamp ^ (timestamp >>> 32));
-        result = 31 * result + (int) (tick ^ (tick >>> 32));
-        result = 31 * result + timer.hashCode();
-        return result;
+    public String toString() {
+        return String.format("startTime: %s, endTime: %s, atomicInteger value: %s", startTime.toString(), startTime.plusSeconds(this.tick).toString(), this.atomicInteger.get());
     }
 }

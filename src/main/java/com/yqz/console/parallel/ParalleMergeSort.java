@@ -84,8 +84,8 @@ public class ParalleMergeSort {
 				int mid = (lo + hi) >>> 1;
 				invokeAll(new SortTask(array, lo, mid), new SortTask(array, mid, hi));
 
-				System.out.println(String.join(",",
-						Arrays.asList(array).stream().map(p -> p.toString()).collect(Collectors.toList())));
+				//System.out.println(String.join(",",
+				//		Arrays.asList(array).stream().map(p -> p.toString()).collect(Collectors.toList())));
 				merge(lo, mid, hi);
 			}
 		}

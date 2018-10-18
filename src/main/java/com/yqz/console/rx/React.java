@@ -26,7 +26,7 @@ public class React {
 
     public static void main(String[] args) throws InterruptedException {
 
-        schedulers();
+        buffer();
         System.out.println("exit");
 
     }
@@ -37,9 +37,9 @@ public class React {
                 .take(2)
                 .map(p -> p.getT1())
                 .then()
-                .subscribe(s -> System.out.println(s), System.out::println, () -> System.out.println("completion"));
+                .subscribe(s -> System.out.println("consumer: "+s), System.out::println, () -> System.out.println("completion"));
         try {
-            Thread.sleep(2100);
+            Thread.sleep(3100);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -377,11 +377,14 @@ public class React {
 //                .subscribe();
 
 
-        Flux.range(1, 10).log().window(3).subscribe(p -> p.doOnNext(j -> System.out.println(j)).subscribe());
+        Flux.range(1, 10).window(3) 
+                .subscribe(p -> p.doOnNext(j -> System.out.println(j)).subscribe());
     }
 
     public static void buffer() {
-        Flux.range(1, 10).buffer(3).subscribe(p -> System.out.println(p));
+        //Flux.range(1, 10)
+        Flux.fromStream(Stream.of(1,2,3,4,5))
+                .buffer(3).subscribe(p -> System.out.println(p));
     }
 
     //todo
