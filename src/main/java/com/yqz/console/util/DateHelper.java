@@ -7,6 +7,10 @@ import org.springframework.util.StringUtils;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -18,7 +22,7 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public class DateHelper {
-
+    public final static String DATEFORMAT_ONLY_DATE = "yyyy-MM-dd";
     public final static String DATEFORMAT_FULL = "yyyy-MM-dd HH:mm:ss.SSS";
     public final static String DATEFORMAT_STANDARD = "yyyy-MM-dd HH:mm:ss";
     public final static String DATEFORMAT_DATE = "yyyy-MM-dd";
@@ -46,8 +50,39 @@ public class DateHelper {
         str = "2016-08-09T10:01:54.123";
         System.out.println(serialize(deserialize(str), DATEFORMAT_FULL).equals("2016-08-09 10:01:54.123"));
 
+        System.out.println(localDateTimeToDate( dateToLocalDateTime(deserialize(str))) );
+        
         str = "2016-08-09";
         System.out.println(serialize(deserialize(str), DATEFORMAT_DATE).equals("2016-08-09"));
+
+        System.out.println(DateHelper.serialize( DateHelper.localDateTimeToDate(LocalDateTime.now().minusMonths(3))));
+      
+    }
+
+    public static Date localDateToDate(LocalDate localDate) {
+        ZoneId zoneId = ZoneId.systemDefault();
+        ZonedDateTime zdt = localDate.atStartOfDay(zoneId);
+
+        Date date = Date.from(zdt.toInstant());
+        return date;
+    }
+
+    public static LocalDate dateToLocalDate(Date date) {
+        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        return localDate;
+    }
+
+    public static Date localDateTimeToDate(LocalDateTime localDateTime) {
+        ZoneId zoneId = ZoneId.systemDefault();
+        ZonedDateTime zdt = localDateTime.atZone(zoneId);
+
+        Date date = Date.from(zdt.toInstant());
+        return date;
+    }
+
+    public static LocalDateTime dateToLocalDateTime(Date date) {
+        LocalDateTime LocalDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        return LocalDateTime;
     }
 
     public static Date deserialize(String source, String... dateFormat) {
@@ -141,6 +176,7 @@ public class DateHelper {
         }
 
     }
+
     /**
      * 返回代表当前时间格式化的字符串
      *
@@ -158,6 +194,7 @@ public class DateHelper {
     public static Date getNow() {
         return Calendar.getInstance().getTime();
     }
+
     /**
      * 函数功能描述:UTC时间转本地时间格式
      *

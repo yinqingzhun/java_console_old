@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ public class JsonHelper {
         mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
         mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
         mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        mapper.registerModule(new JavaTimeModule());
     }
 
     public static String serialize(Object o) {
@@ -54,7 +56,7 @@ public class JsonHelper {
             T t = mapper.readValue(s, clazz);
             return t;
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error(s+", "+e.getMessage());
         }
         return null;
     }

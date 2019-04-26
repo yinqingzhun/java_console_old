@@ -12,7 +12,7 @@ public class AsynchronousServerSocket {
 	public static void main(String[] args) {
 		try {
 			AsynchronousServerSocketChannel server = AsynchronousServerSocketChannel.open()
-					.bind(new InetSocketAddress(8000));
+					.bind(new InetSocketAddress(8100));
 
 			server.accept(null, new CompletionHandler<AsynchronousSocketChannel, Object>() {
 				final ByteBuffer buffer = ByteBuffer.allocate(1024);

@@ -1,4 +1,4 @@
-package com.yqz.console;
+package com.yqz.console.concurrent;
 
 import java.util.concurrent.CompletableFuture;
 

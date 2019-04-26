@@ -1,7 +1,5 @@
 package com.yqz.console.utils;
 
-import com.sun.org.apache.bcel.internal.generic.RETURN;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

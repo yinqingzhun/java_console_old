@@ -1,14 +1,16 @@
 package com.yqz.console.util;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-/**
- * Created by JIAOBAILONG on 2018/9/27 17:45 Autohome Co.,Ltd.
- */
 public class NetUtils {
 
     public static List<InetAddress> getIPV4AddressList() {
@@ -37,37 +39,25 @@ public class NetUtils {
 
         return inetAddressList;
     }
-    
-    public static Map<String, InetAddress> getIPV4AddressList(String displayNameRegexp){
-        Map<String,InetAddress> inetAddressMap = new HashMap<>();
-        Enumeration allNetInterfaces = null;
 
-     Pattern pattern= Pattern.compile(displayNameRegexp);
-        try {
-            allNetInterfaces = NetworkInterface.getNetworkInterfaces();
-            while (allNetInterfaces.hasMoreElements()) {
-                NetworkInterface netInterface = (NetworkInterface) allNetInterfaces.nextElement();
+    public static Map<String, InetAddress> getIPV4AddressListByGateway(String... gateway) {
 
-                if (netInterface.isLoopback() || netInterface.isPointToPoint() || netInterface.isVirtual() || !netInterface.isUp())
-                    continue;
+        if (gateway == null || gateway.length == 0)
+            return Collections.emptyMap();
 
-                
-                if(!pattern.matcher(netInterface.getDisplayName()).matches())
-                    continue;
+        Map<String, InetAddress> inetAddressMap = new HashMap<>();
 
-                Enumeration addresses = netInterface.getInetAddresses();
-                while (addresses.hasMoreElements()) {
-                    InetAddress ip = (InetAddress) addresses.nextElement();
-                    if (ip != null && ip instanceof Inet4Address) {
-                        inetAddressMap.put(netInterface.getDisplayName(),ip);
-                    }
+        List<InetAddress> list = getIPV4AddressList();
+        Stream.of(gateway).forEach(p -> {
+            for (InetAddress address : list) {
+                if (address.getHostAddress().substring(0, address.getHostAddress().lastIndexOf(".")).equalsIgnoreCase(p.substring(0, p.lastIndexOf(".")))) {
+                    inetAddressMap.putIfAbsent(p, address);
+                    break;
                 }
             }
-
-        } catch (java.net.SocketException e) {
-            e.printStackTrace();
-        }
-
+            inetAddressMap.putIfAbsent(p, null);
+        });
         return inetAddressMap;
     }
+
 }

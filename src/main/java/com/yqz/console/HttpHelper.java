@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 
-public class HttpHelper {
+/*public class HttpHelper {
     static Logger logger = LoggerFactory.getLogger(HttpHelper.class);
 
     public static HttpResult httpGet(String url) {
@@ -144,4 +144,4 @@ public class HttpHelper {
         }
 
     }
-}
+}*/

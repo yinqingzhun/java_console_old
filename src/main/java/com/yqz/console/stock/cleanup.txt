@@ -1,0 +1,2 @@
+4.001 3 Gaynell 1 sell 5 D 50 false
+8.001 7 Vasiliki 1 buy 2 E 13 true
