@@ -1,17 +1,47 @@
 package com.yqz.console.algorithm;
 
 import com.google.common.base.Preconditions;
+import reactor.core.publisher.Flux;
 
 import java.util.Arrays;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class Sort {
-    private static final int[] src = new int[]{10000, 0, 6, 2, 4, 3, 5, 1, 1000};
+    private static final int[] src = new int[]
+//            { 1, 3, 7, 4};
+//             {1, 3, 7, 9, 4};
+            // {10000, 0, 6, 2, 4, 3, 5, 1, 1000};
+            //    {1, 0, 3, 2, 4};
+            {1, 2};
+    private static final int[][] arrays = new int[][]{{1, 2, 3, 4},
+            {1, 3, 7, 4},
+            {1, 3, 7, 9, 4},
+            {10000, 0, 6, 2, 4, 3, 5, 1, 1000},
+            {1, 0, 3, 2, 4},
+            {1, 2},
+            {3, 4, 2, 1},
+            {1, 3, 2, 4}
+    };
+
 
     public static void main(String[] args) {
-        int[] array = copy(src);
-        fast(array, 0, array.length);
-        print(array);
+
+        for (int i = 0; i < 100; i++) {
+            Flux.range(0, 10).buffer(10).subscribe(list -> {
+                int[] array = shuffle(list.stream().mapToInt(Integer::intValue).toArray());
+                System.out.println("---|" + toString(array));
+                fast(array, 0, array.length - 1);
+                print(array);
+
+            });
+        }
+       /* for (int i = 0; i < arrays.length; i++) {
+            int[] array = copy(arrays[i]);
+            fast(array, 0, array.length - 1);
+            print(array);
+        }*/
+
 
        /* 
         quickSort(array, 0, array.length - 1);
@@ -54,23 +84,28 @@ public class Sort {
     /**
      * @param a    target array
      * @param from start index, inclusive
-     * @param to   end index, exclusive
+     * @param to   end index, inclusive
      */
     public static void fast(int[] a, int from, int to) {
 
-        if (from > to - 1 || from < 0 || to > a.length)
+        if (from >= to || from < 0 || to >= a.length)
             return;
+
+       /* if (to - from == 2) {
+            if (a[from] > a[to - 1])
+                swap(a, from, to - 1);
+            return;
+        }*/
 
 
         int leftIndex = from;
-        int rightIndex = to - 2;
-        int originLeftIndex = leftIndex;
+        int rightIndex = to - 1;
         int originRightIndex = rightIndex;
 
-        int keyValue = a[to - 1];
+        int keyValue = a[to];
         boolean swap = false;
         while (leftIndex < rightIndex) {
-            while (leftIndex < rightIndex && a[leftIndex] < keyValue) {
+            while (leftIndex < rightIndex + 1 && a[leftIndex] < keyValue) {
                 leftIndex++;
             }
 
@@ -78,29 +113,22 @@ public class Sort {
                 rightIndex--;
             }
 
-            if (swap(a, leftIndex, rightIndex)) {
+            if (leftIndex < rightIndex && swap(a, leftIndex, rightIndex)) {
                 swap = true;
             }
         }
 
-        if (!swap) {
-            if (rightIndex == originRightIndex) {
-                if (a[originRightIndex] < keyValue) {
-                    //no swap
-                    System.out.printf("[%s] [%s]", toString(a, from, to-1), keyValue); System.out.println();
-                    fast(a, from, to - 1);
-                    return;
-                }
-            }
-        }
+       /* if (!swap && leftIndex == originRightIndex && a[originRightIndex] < keyValue) {
+            leftIndex=to-1;
+        }*/
 
+        if (a[leftIndex] > keyValue)
+            swap(a, leftIndex, to);
 
-        swap(a, leftIndex, to - 1);
+//        System.out.printf("[%s] [%s] [%s]", toString(a, from, leftIndex - from), a[leftIndex], toString(a, leftIndex + 1, to - leftIndex));
+//        System.out.println();
 
-        System.out.printf("[%s] [%s] [%s]", toString(a, from, leftIndex), a[leftIndex], toString(a, leftIndex + 1, to));
-        System.out.println();
-
-        fast(a, from, leftIndex);
+        fast(a, from, leftIndex - 1);
         //System.out.println("[%s]",);
         fast(a, leftIndex + 1, to);
 
@@ -124,13 +152,15 @@ public class Sort {
     }
 
     public static void print(int[] a) {
-        System.out.println(Arrays.stream(a).mapToObj(p -> String.valueOf(p)).collect(Collectors.reducing((m, n) -> String.valueOf(m) + "," + String.valueOf(n))).orElse(""));
+        System.out.println("--->" + Arrays.stream(a).mapToObj(p -> String.valueOf(p)).collect(Collectors.reducing((m, n) -> String.valueOf(m) + "," + String.valueOf(n))).orElse(""));
     }
 
-    public static String toString(int[] a, int from, int to) {
-        if (from >= to)
-            return "";
-        return (Arrays.stream(copy(a, from, to)).mapToObj(p -> String.valueOf(p)).collect(Collectors.reducing((m, n) -> String.valueOf(m) + "," + String.valueOf(n))).orElse(""));
+    public static String toString(int[] a, int from, int len) {
+        return (Arrays.stream(copy(a, from, len)).mapToObj(p -> String.valueOf(p)).collect(Collectors.reducing((m, n) -> String.valueOf(m) + "," + String.valueOf(n))).orElse(""));
+    }
+
+    public static String toString(int[] a) {
+        return (Arrays.stream(copy(a, 0, a.length)).mapToObj(p -> String.valueOf(p)).collect(Collectors.reducing((m, n) -> String.valueOf(m) + "," + String.valueOf(n))).orElse(""));
     }
 
     /**
@@ -138,14 +168,14 @@ public class Sort {
      *
      * @param array
      * @param from
-     * @param to
+     * @param len
      * @return
      */
-    public static int[] copy(int[] array, int from, int to) {
-        if (array == null || array.length == 0 || from >= to || to > array.length)
+    public static int[] copy(int[] array, int from, int len) {
+        if (array == null || array.length == 0 || len <= 0)
             return new int[0];
-        Preconditions.checkState(from >= 0 && to <= array.length && to > from);
-        int[] result = new int[to - from];
+        Preconditions.checkState(from >= 0 && len <= array.length);
+        int[] result = new int[len];
         System.arraycopy(array, from, result, 0, result.length);
         return result;
     }
@@ -163,4 +193,16 @@ public class Sort {
         return i != j;
     }
 
+    private static int[] shuffle(int[] array) {
+        int[] copy = Arrays.copyOf(array, array.length);
+        Random random = new Random();
+        int i = copy.length;
+        while (--i > 0) {
+            int j = random.nextInt(i);
+            int temp = copy[i];
+            copy[i] = copy[j];
+            copy[j] = temp;
+        }
+        return copy;
+    }
 }
