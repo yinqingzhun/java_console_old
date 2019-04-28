@@ -1,6 +1,5 @@
 package com.yqz.console.slide;
 
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
@@ -186,7 +185,7 @@ public class SlideKeyValuePairWindow<K> {
         //        System.out.println("");
         //}
 
-        System.out.println(com.yqz.console.util.CollectionUtils.difference(set,set2));
+        System.out.println(com.yqz.console.utils.CollectionUtils.difference(set,set2));
         //ses.scheduleAtFixedRate(() -> {
         //    window.safeIncreaseIndex(atomicInteger.incrementAndGet());
         //}, 10, 2, TimeUnit.MILLISECONDS);

@@ -1,4 +1,4 @@
-package com.yqz.console.util;
+package com.yqz.console.utils;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;

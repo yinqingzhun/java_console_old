@@ -10,7 +10,7 @@ public class Sort {
 
     public static void main(String[] args) {
         int[] array = copy(src);
-        fast(array, 0, array.length);
+        quickSort3(array, 0, array.length-1);
         print(array);
 
        /* 
@@ -18,7 +18,33 @@ public class Sort {
         print(array);*/
 
     }
+    static void  quickSort3(int[] array,int left,int right)
+    {
+        if(left < right){
+            int key = array[right];
+            int cur = left;
+            int pre = left - 1;
+            while(cur < right)
+            {
+                while(array[cur] < key && ++pre != cur)//如果找到小于key的值，并且cur和pre之间有距离时则进行交换。注意两个条件的先后位置不能更换，可以参照评论中的解释
+                {
+                    swap(array,cur,pre);
+                }
+                ++cur;
+            }
 
+            swap(array,++pre,right);
+
+
+            quickSort(array, left, pre - 1); /* 递归调用 */
+            quickSort(array, pre + 1, right); /* 递归调用 */
+             
+        }
+
+       
+        
+        
+    }
     /*
      * 快速排序
      *

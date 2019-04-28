@@ -1,4 +1,4 @@
-package com.yqz.console.util;
+package com.yqz.console.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;

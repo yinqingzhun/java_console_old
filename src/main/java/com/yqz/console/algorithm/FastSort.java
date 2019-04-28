@@ -1,49 +1,64 @@
-/*
 package com.yqz.console.algorithm;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class FastSort {
-    private static final int[] src = new int[]{10000, 0, 6, 2, 4, 3, 5, 1, 1000};
+    private static final int[] src = new int[]{10, -2, 5, 8, -4, 2, -3, 7, 12, -88, -23, 35};
 
     public static void main(String[] args) {
         int[] array = src;
-        QuickSort(array, 0, array.length);
+        sort(array, 0, array.length - 1);
         print(array);
-       */
-/* 
-        quickSort(array, 0, array.length - 1);
-        print(array);*//*
-
-
     }
 
     public static void print(int[] a) {
         System.out.println(Arrays.stream(a).mapToObj(p -> String.valueOf(p)).collect(Collectors.reducing((m, n) -> String.valueOf(m) + "," + String.valueOf(n))).orElse(""));
     }
 
-    static int PartSort1(int[] a, int left, int right) {
-        int key = right;
-        while (left < right) {
-            while (left < right && a[left] <= a[key])
-                ++left;
-            while (left < right && a[right] >= a[key])
-                --right;
-            swap(a, left, right);
+    static void sort(int[] a, int left, int right) {
+        int i = left;
+        int j = right;
+        int keyValue = 0;
+
+        while (i < j) {
+            while (i < j && a[i] < keyValue)
+                i++;
+            while (i < j && a[j] > keyValue)
+                j--;
+
+            if (i < j)
+                swap(a, i, j);
         }
-        swap(a, left, key);
-        return left;
     }
 
-    static void QuickSort(int[] a, int left, int right)//分治法 子问题求解
-    {
-        if (left >= right)
-            return;
-        int key = PartSort1(a, left, right);
-        QuickSort(a, left, key - 1);
-        QuickSort(a, key + 1, right);
+    static void sort2(int[] a, int left, int right) {
+        int z = a[0];
+        int i = left;
+        int j = right;
+        int keyValue = 0;
+        a[0] = 0;
+
+        while (i < j) {
+            while (i < j && a[j] > keyValue)
+                j--;
+            if (i < j) {
+                a[i++] = a[j];
+            }
+
+            while (i < j && a[i] < keyValue)
+                i++;
+
+            if (i < j) {
+                a[j--] = a[i];
+            }
+        }
+        
+        a[i]=z;
     }
+
+    
+
 
     public static void swap(int[] array, int i, int j) {
         if (i != j) {
@@ -53,4 +68,3 @@ public class FastSort {
         }
     }
 }
-*/

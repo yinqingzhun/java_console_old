@@ -11,4 +11,8 @@ public class ConvertHelper {
             return defaultValue;
         }
     }
+
+    public static <T> T defaultValue(T source, T defaultValue) {
+        return source == null ? defaultValue : source;
+    }
 }
