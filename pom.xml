@@ -146,5 +146,15 @@
             <artifactId>spring-security-core</artifactId>
             <version>5.0.8.RELEASE</version>
         </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>io.jpower.kcp</groupId>
+			<artifactId>kcp-example</artifactId>
+			<version>1.4.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.lmax</groupId>
+			<artifactId>disruptor</artifactId>
+			<version>3.4.2</version>
+		</dependency>
+	</dependencies>
 </project>

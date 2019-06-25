@@ -1,16 +1,13 @@
 package com.yqz.console.algorithm;
 
 
-import com.google.common.base.Joiner;
-import com.yqz.console.utils.StringHelper;
-import org.springframework.util.StringUtils;
-
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Random;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+/**
+ * 蓄水池采样算法
+ */
 public class ReservoirSamplingTest {
     private int poolSize = 1000;
     private int resultSize = 10;

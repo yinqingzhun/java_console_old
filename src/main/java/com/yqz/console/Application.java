@@ -1,10 +1,13 @@
 package com.yqz.console;
 
 
+import com.fasterxml.jackson.databind.KeyDeserializer;
+import com.fasterxml.jackson.databind.deser.DataFormatReaders;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
 import com.yqz.console.model.FeedBase;
-import com.yqz.console.utils.DateHelper;
-import com.yqz.console.utils.HashHelper;
+import com.yqz.console.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +17,8 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -73,6 +78,8 @@ public class Application {
     }
 
     private static String getFeedKey(FeedBase feed) {
+
+
         String key = feed.getObjid() + "," + feed.getObjtype();
         return key;
     }
@@ -109,26 +116,106 @@ public class Application {
         return resultList;
     }
 
+    public static String mostCommonWord() {
+        String paragraph = "Bob hit a ball, the hit BALL flew far after it was hit.";
+        String[] banned = new String[]{"hit"};
+
+        paragraph = paragraph.replaceAll("[^\\w\\s]", "");
+        String[] ss = paragraph.split("\\s");
+
+
+        Map<String, Integer> map = new HashMap();
+
+
+        for (String s : ss) {
+            boolean h = false;
+            for (String b : banned) {
+                if (s.toLowerCase().equals(b) || s.trim().equals("")) {
+                    h = true;
+                    break;
+                }
+            }
+
+            if (h)
+                continue;
+
+            Integer count = map.get(s.toLowerCase());
+            map.put(s.toLowerCase(), count == null ? 1 : count + 1);
+        }
+
+        Integer value = 0;
+        String key = "";
+
+        for (String k : map.keySet()) {
+            Integer v = map.get(k);
+            if (v > value) {
+                value = v;
+                key = k;
+            }
+
+
+        }
+
+        return key;
+
+
+    }
+
+    private static void product(int input) {
+        List<Integer> list = new LinkedList<>();
+        int i = 2;
+        int a = input;
+        while (i <= a) {
+            if (a % i == 0) {
+                list.add(i);
+                a /= i;
+                i = 2;
+            } else {
+                i++;
+            }
+        }
+        System.out.println(input + "=" + list.stream().map(p -> p.toString()).collect(Collectors.joining("*")));
+
+    }
+
+    private static void prime(int input) {
+        List<Integer> list = new LinkedList<>();
+
+        for (int i = 2; i <= input; i++) {
+            int j = 2;
+            for (; j < i; j++) {
+                if (i % j == 0)
+                    break;
+            }
+
+            if (j == i)
+                list.add(i);
+        }
+
+        System.out.println(list.stream().map(p -> p.toString()).collect(Collectors.joining(",")));
+    }
+
+    public static class LL {
+        public String content;
+    }
+
 
     public static void main(String[] args) throws Exception {
-        //List<FeedBase> feedBaseList = new LinkedList<>();
-        //feedBaseList.add(new FeedBase(1, 1, "2000-01-01 12:32:33"));
-        //feedBaseList.add(new FeedBase(2, 2, "2002-01-01 12:32:33"));
-        //feedBaseList.add(new FeedBase(1, 1, "2001-01-01 12:32:33"));
-        //feedBaseList = mergeFeedList(feedBaseList, new FeedBase(1, 1, "2000-01-01 14:32:33"), new FeedBase(3, 3, "2003-01-01 12:32:33"));
-        //
-        //feedBaseList.forEach(p -> System.out.println(JsonHelper.serialize(p)));
-        
 
-        BCryptPasswordEncoder bCryptPasswordEncoder=new BCryptPasswordEncoder(10);
-        System.out.println(bCryptPasswordEncoder.encode("admin"));
+        LinkedHashMap<Integer, Integer> map = new LinkedHashMap<>();
+        map.put(3450, 1);
+        map.put(5637, 1);
+        map.put(4563, 1);
+        //map.forEach((k, v) -> System.out.println(k));
 
-      /*  Enumeration<Integer> enumeration = Collections.enumeration(Arrays.asList(1, 3, 5, 7));
-        while (enumeration.hasMoreElements()) {
-            System.out.println(enumeration.nextElement());
-        }*/
+       /* String s = "{\"content\":\"～《腿很高》哦～&哦&iu月^_^\\(^^)\uD83D\uDE07\uD83D\uDE02\uD83D\uDE43\uD83D\uDE1D\uD83E\uDDD0\"}";
+        Object o = JacksonHelper.deserialize(s,LL.class);*/
 
+        Map<String, String> map1 = new HashMap<>();
+        map1.put("content", "～《腿很高》哦～&哦&iu月^_^\\(^^)\uD83D\uDE07\uD83D\uDE02\uD83D\uDE43\uD83D\uDE1D\uD83E\uDDD0");
+        String s = JacksonHelper.serialize(map1);
 
+        System.out.println(JacksonHelper.deserialize(s));
         //long n = Integer.MAX_VALUE + 1;
         //byte[] bytes = ByteArrayHelper.valueToBytes(ByteOrder.BIG_ENDIAN, n, 4);
         //System.out.println(ByteArrayHelper.bytesToValue(ByteOrder.BIG_ENDIAN, bytes, 0, 4));

@@ -6,11 +6,12 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class Sort {
-    private static final int[] src = new int[]{10000, 0, 6, 2, 4, 3, 5, 1, 1000};
+    private static final int[] src = new int[]{10,20,30,1,2,5};
+            //{0, -1, 40, 50, 3, 2, 10};//{10000, 0, 6, 2, 4, 3, 5, 1, -1};
 
     public static void main(String[] args) {
         int[] array = copy(src);
-        quickSort3(array, 0, array.length-1);
+        quickSort3(array, 0, array.length - 1);
         print(array);
 
        /* 
@@ -18,33 +19,44 @@ public class Sort {
         print(array);*/
 
     }
-    static void  quickSort3(int[] array,int left,int right)
-    {
-        if(left < right){
+
+    static void quickSort3(int[] array, int left, int right) {
+        if (left < right) {
             int key = array[right];
             int cur = left;
             int pre = left - 1;
-            while(cur < right)
-            {
-                while(array[cur] < key && ++pre != cur)//如果找到小于key的值，并且cur和pre之间有距离时则进行交换。注意两个条件的先后位置不能更换，可以参照评论中的解释
+            while (cur < right) {
+                while (array[cur] < key)//如果找到小于key的值，并且cur和pre之间有距离时则进行交换。注意两个条件的先后位置不能更换，可以参照评论中的解释
                 {
-                    swap(array,cur,pre);
+                    ++pre;
+                    if (pre == cur) {
+                        break;
+                    }
+                    
+                    swap(array, cur, pre);
+
                 }
                 ++cur;
             }
 
-            swap(array,++pre,right);
 
+            int split = pre + 1;
+            if (array[split] > array[right]) {
+                swap(array, split, right);
+            }
 
-            quickSort(array, left, pre - 1); /* 递归调用 */
-            quickSort(array, pre + 1, right); /* 递归调用 */
-             
+            System.out.printf("[%s] [%s] [%s]", toString(array, left, split), array[split],
+                    (split >= right ? "" : toString(array, split + 1, right + 1)));
+            System.out.println();
+
+            quickSort3(array, left, split - 1); /* 递归调用 */
+            quickSort3(array, split + 1, right); /* 递归调用 */
+
         }
 
-       
-        
-        
+
     }
+
     /*
      * 快速排序
      *
@@ -113,7 +125,8 @@ public class Sort {
             if (rightIndex == originRightIndex) {
                 if (a[originRightIndex] < keyValue) {
                     //no swap
-                    System.out.printf("[%s] [%s]", toString(a, from, to-1), keyValue); System.out.println();
+                    System.out.printf("[%s] [%s]", toString(a, from, to - 1), keyValue);
+                    System.out.println();
                     fast(a, from, to - 1);
                     return;
                 }
