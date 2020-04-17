@@ -9,25 +9,38 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class Application2 {
 
     public static void main(String[] args) throws Exception {
-        Long[] ints = new Long[]{MSGID_MAX - 4, MSGID_MAX - 3, MSGID_MAX - 2, MSGID_MAX - 1, MSGID_MAX, 0L, 1L, 2L, 3L};
-        for (int j = 0; j < 10; j++) {
+//        Long[] ints = new Long[]{MSGID_MAX - 4, MSGID_MAX - 3, MSGID_MAX - 2, MSGID_MAX - 1, MSGID_MAX, 0L, 1L, 2L, 3L};
+//        for (int j = 0; j < 10; j++) {
+//            LAST_ID = MSGID_MAX - 5;
+//            fasterMsgBuffer.clear();
+//
+//            Long[] copy = shuffle(ints);
+//            System.out.println("第" + (j + 1) + "次:");
+//            System.out.println(Arrays.stream(copy).map(p -> p.toString()).collect(Collectors.joining(",")));
+//            for (int i = 0; i < ints.length; i++) {
+//                order3(copy[i]);
+//            }
+//
+//        }
 
-            LAST_ID = MSGID_MAX - 5;
-            fasterMsgBuffer.clear();
-
-            Long[] copy = shuffle(ints);
-            System.out.println("第" + (j + 1) + "次:");
-            System.out.println(Arrays.stream(copy).map(p -> p.toString()).collect(Collectors.joining(",")));
-            for (int i = 0; i < ints.length; i++) {
-                order3(copy[i]);
-            }
-
+        Integer[] a=new Integer[10];
+        for (int i = 0; i <10 ; i++) {
+            a[i]=i;
         }
+        a=shuffle(a);
+        Stream.of(a).forEach(p->System.out.print(p+","));
+
+        System.out.println();
+
+        a=shuffle(a);
+        Stream.of(a).forEach(p->System.out.print(p+","));
+
     }
 
     private static <T> T[] shuffle(T[] array) {

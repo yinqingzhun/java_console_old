@@ -1,24 +1,35 @@
 package com.yqz.console;
 
 
-import com.fasterxml.jackson.databind.KeyDeserializer;
-import com.fasterxml.jackson.databind.deser.DataFormatReaders;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.gson.Gson;
+import com.google.common.base.Stopwatch;
+import com.yqz.console.http.HttpHelper;
 import com.yqz.console.model.FeedBase;
-import com.yqz.console.utils.*;
+import com.yqz.console.utils.DateHelper;
+import com.yqz.console.utils.HashHelper;
+import com.yqz.console.utils.JsonHelper;
+import com.yqz.console.utils.RequestSignHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.net.Inet4Address;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -195,70 +206,327 @@ public class Application {
         System.out.println(list.stream().map(p -> p.toString()).collect(Collectors.joining(",")));
     }
 
-    public static class LL {
-        public String content;
+    public static String sign(long uid, String deviceId, long tsInSeconds) {
+        //签名 ，规则：md5( 用户id + 设备号 + Unix时间戳 + 秘钥 )
+
+        long lag = System.currentTimeMillis() - tsInSeconds * 1000;
+        if (Math.abs(lag) > 30000) {
+            return "";
+        }
+
+        String src = uid + deviceId + tsInSeconds + "692c114598d64c29b004f7e59ce4c4a9";
+        return DigestUtils.md5DigestAsHex(src.getBytes(Charset.forName("utf-8")));
+    }
+
+
+    public static void run() throws Exception {
+//        ConcurrentLinkedQueue<Integer> queue=new ConcurrentLinkedQueue<>();
+//        queue.offer(1);
+//        queue.offer(0);
+//        queue.remove(1);
+//        queue.offer(2);
+
+
+
+
+
+       /* ConcurrentSkipListSet<Integer> blackUserList = new ConcurrentSkipListSet();
+        Thread t1=new Thread(()->{
+            int i = 0;
+            while (true) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                blackUserList.add(i++);
+            }
+
+        });
+        t1.start();
+
+        for (int i = 0; i <10 ; i++) {
+            Thread t2=new Thread(()->{
+                while (true) {
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    int index = Math.max(blackUserList.size() - 10, 0);
+                    int limit = 10;
+                    System.out.println(blackUserList.stream().skip(index).limit(limit).map(p -> p.toString()).collect(Collectors.joining(",")));
+                }
+
+            });
+            t2.start();
+        }
+
+*/
+
+
+        //System.out.println( String.format("%,d",10000234));
+
+        //run2();
+//        addBlacklist();
+//        addToken(79159749, "644954bc82e7471783e81c2b8a9320a504b7e1c5");
+    }
+
+    public static void addToken(int uid, String token) {
+
+        String salt = "c90459faaad911e9834080e82c9531bf";
+
+        String md5 = DigestUtils.md5DigestAsHex((uid + token + salt).getBytes(Charset.forName("utf-8"))).replace("-", "");
+
+
+        String url = String.format("http://localhost/add_token?uid=%s&token=%s&_s=%s&ttl=1000000", uid, token, md5);
+        System.out.println(url);
+//        HttpHelper.Tuple2<Integer, String> result = HttpHelper.httpGet(url);
+//        System.out.println(String.format("{%s}:ut:%s", uid, token) + "---" + result.getT2());
+
+    }
+
+
+    public static void addBlacklist() {
+        String uids = "29652265,79159749";
+
+        String guid = UUID.randomUUID().toString();
+        long ts = System.currentTimeMillis();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(uids);
+        sb.append(guid);
+        sb.append(ts);
+        sb.append("1f7cca96a30611e9afff80e82c9531bf");
+        String md5 = DigestUtils.md5DigestAsHex(sb.toString().getBytes(Charset.forName("utf-8"))).replace("-", "");
+
+
+        String url = String.format("http://localhost:8087/api/blacklist/add.do?uid=%s&guid=%s&_t=%s&_s=%s", uids, guid, ts, md5);
+        System.out.println(url);
+        HttpHelper.Tuple2<Integer, String> result = HttpHelper.httpGet(url);
+        System.out.println(result.getT2());
+
+    }
+
+    public static void run2() throws Exception {
+        ConcurrentLinkedQueue<Integer> extraAwardQueue = new ConcurrentLinkedQueue<>();
+        ConcurrentHashMap<Integer, ConcurrentLinkedQueue<String>> map = new ConcurrentHashMap<>();
+        String s = "/luckydraw?_c=110100&_m=b11498d2a71f224af7d4a41d4f6656462a0213a7&_tk=fa8b1446caa9447fb8c36e8de33d68b90217bb12&_g=ds90sadf89";
+        ConcurrentHashMap<Integer, String> urlMap = new ConcurrentHashMap<>();
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        int count = 1;
+        CountDownLatch startSignal = new CountDownLatch(1);
+        CountDownLatch doneSignal = new CountDownLatch(count);
+        Random random = new Random();
+        String[] hosts = new String[]{"http://localhost:80", "http://localhost:80"};
+        for (int i = 0; i < count; ++i) // create and start threads
+        {
+            extraAwardQueue.add(i);
+            final int n = i;
+            new Thread(() -> {
+                try {
+                    startSignal.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                int userCount = 2;
+                for (int j = 0; j < userCount; j++) {
+                    try {
+                        Thread.sleep(2600);
+                    } catch (InterruptedException e) {
+                    }
+                    int uid = (4289227);
+                    long ts = System.currentTimeMillis() / 1000;
+                    String sign = sign(uid, "b11498d2a71f224af7d4a41d4f6656462a0213a7", ts);
+
+                    String url = hosts[(random.nextInt(uid)) % 2] + s + "&_u=" + uid + "&_d=" + urlMap.getOrDefault(uid, "")
+                            + "&_t=" + ts + "&_s=" + sign;
+//                    log.info(url);
+                    HttpHelper.Tuple2<Integer, String> result = HttpHelper.httpGet(url);
+                    System.out.println(DateHelper.getNowString(DateHelper.DATEFORMAT_FULL) + "/t" + result.getT2());
+                    if (result.getT1() == 200) {
+                        JsonNode jsonNode = JsonHelper.deserialize(result.getT2(), JsonNode.class);
+                        if (jsonNode.at("/c").asText().equals("0")) {
+
+                            ConcurrentLinkedQueue<String> queue = map.compute(uid, (k, v) ->
+                                    v == null ? new ConcurrentLinkedQueue() : v
+                            );
+                            String d = jsonNode.at("/o/d").asText();
+                            queue.add(d);
+                            urlMap.put(uid, d);
+
+
+                        }
+                    }
+                   /* try {
+                        Thread.sleep(random.nextInt(1000) + 2900);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }*/
+                }
+
+                doneSignal.countDown();
+            }).start();
+
+        }
+
+
+        // don't let run yet
+        startSignal.countDown();      // let all threads proceed
+
+        doneSignal.await();           // wait for all to finish
+        stopwatch.stop();
+        Map<Integer, Set<String>> ids = new ConcurrentHashMap<>();
+
+        map.forEach((k, v) -> {
+            Set<String> set = new HashSet<>();
+
+            v.stream().forEach(p -> {
+                String[] ary = p.split(",");
+                if (!StringUtils.isEmpty(ary[ary.length - 2]))
+                    set.addAll(Arrays.asList(ary[ary.length - 2].split("[|]")).stream().filter(m -> StringUtils.hasText(m)).collect(Collectors.toList()));
+//                    System.out.println(ary[ary.length - 2] + "--->" + p);
+            });
+            if (set.size() > 3) {
+                System.out.println(k + "[" + set.size() + "]:" + Joiner.on(",").join(set));
+                System.out.println();
+            }
+            ids.put(k, set);
+        });
+        System.out.println(stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
+
+        System.out.printf("count: %s/%s, list: %s"
+                , ids.values().stream().flatMap(v -> v.stream()).distinct().count()
+                , ids.values().stream().flatMap(v -> v.stream()).count()
+                , ids.values().stream().flatMap(v -> v.stream()).sorted().collect(Collectors.toList()));
+
+
+    }
+
+    public static String toBinaryString(Inet4Address inet4Address) {
+        StringBuilder stringBuilder = new StringBuilder();
+        byte[] ipArray = inet4Address.getAddress();
+        for (int i = 0; i < ipArray.length; i++) {
+
+            String bs = Integer.toBinaryString(ipArray[i] & 0xff);
+            if (bs.length() < 8) {
+                stringBuilder.append(String.join("", Collections.nCopies(8 - bs.length(), "0")));
+            }
+            stringBuilder.append(bs);
+            if (i < ipArray.length - 1) {
+                stringBuilder.append(".");
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+
+    public static boolean isSameSubnet(Inet4Address ip, Inet4Address subnet) {
+        /*Preconditions.checkState(subnetLength > 0);
+        Preconditions.checkState(subnetLength < 32);
+
+        byte[] maskArray = new byte[4];
+        for (int i = 0; i < subnetLength / 8; i++) {
+            maskArray[i] = (byte) 255;
+        }
+
+        if (subnetLength % 8 != 0) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(String.join("", Collections.nCopies(subnetLength % 8, "1")));
+            stringBuilder.append(String.join("", Collections.nCopies(8 - subnetLength % 8, "0")));
+
+            Integer mask = Integer.valueOf(stringBuilder.toString(), 2);
+            maskArray[subnetLength / 8] = (byte) (mask & 0xff);
+        }
+*/
+
+        byte[] ipArray = ip.getAddress();
+        byte[] subnetArray = subnet.getAddress();
+
+
+        int end = 4;
+        boolean foundEnd = false;
+        for (int i = 0; i < end; i++) {
+            if (!foundEnd && subnetArray[4 - i - 1] != 0) {
+                end = 4 - i;
+                foundEnd = true;
+            }
+
+
+            System.out.printf("No.%s" + System.lineSeparator(), i);
+            System.out.println(Integer.toBinaryString(ipArray[i] & 0xff) + "---" + Integer.toBinaryString(subnetArray[i] & 0xff));
+            System.out.println();
+
+            if (((subnetArray[i] & 0xff) != (ipArray[i] & 0xff))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static <T> T[] of(T... ts) {
+        return ts;
+    }
+
+    public static void test(String appId, String appkey, long ts, Map<String, Object> fields) throws NoSuchAlgorithmException {
+
+        SortedMap<String, Object> p = new TreeMap(fields);
+        p.put("_appid",appId);
+        p.put("_timestamp", String.valueOf(ts));
+
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(appkey);
+        for (Map.Entry<String, Object> me : p.entrySet())
+            sb.append(me.getKey() + me.getValue());
+        sb.append(appkey);
+
+        System.out.println("before:"+sb);
+//        MessageDigest md = MessageDigest.getInstance("MD5");
+//        md.update(sb.toString().getBytes());
+//        byte b[] = md.digest();
+//        int i;
+//        StringBuffer buf = new StringBuffer("");
+//        for (int offset = 0; offset < b.length; offset++) {
+//            i = b[offset];
+//            if (i < 0) i += 256;
+//            if (i < 16) buf.append("0");
+//            buf.append(Integer.toHexString(i));
+//        }
+//        //debug
+
+        try {
+            String  sign = DigestUtils.md5DigestAsHex(sb.toString().getBytes("utf-8"));
+            System.out.println("_sign=" + sign);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
 
     public static void main(String[] args) throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        map.put("code", "a");
+        map.put("roomid", "2");
+        map.put("type", "1");
 
-        LinkedHashMap<Integer, Integer> map = new LinkedHashMap<>();
-        map.put(3450, 1);
-        map.put(5637, 1);
-        map.put(4563, 1);
-        //map.forEach((k, v) -> System.out.println(k));
+        String appId = "live.open.jkx.i";
+        String secret = "7jC2^t%^36"; //"riX0C07R";
 
-       /* String s = "{\"content\":\"～《腿很高》哦～&哦&iu月^_^\\(^^)\uD83D\uDE07\uD83D\uDE02\uD83D\uDE43\uD83D\uDE1D\uD83E\uDDD0\"}";
-        Object o = JacksonHelper.deserialize(s,LL.class);*/
+        appId = "testid";
+        secret = "testkey";
 
-        Map<String, String> map1 = new HashMap<>();
-        map1.put("content", "～《腿很高》哦～&哦&iu月^_^\\(^^)\uD83D\uDE07\uD83D\uDE02\uD83D\uDE43\uD83D\uDE1D\uD83E\uDDD0");
-        String s = JacksonHelper.serialize(map1);
+        long ts=new Date().getTime()/1000;
 
-        System.out.println(JacksonHelper.deserialize(s));
-        //long n = Integer.MAX_VALUE + 1;
-        //byte[] bytes = ByteArrayHelper.valueToBytes(ByteOrder.BIG_ENDIAN, n, 4);
-        //System.out.println(ByteArrayHelper.bytesToValue(ByteOrder.BIG_ENDIAN, bytes, 0, 4));
-        //
-        //System.out.println(Arrays.copyOfRange(new byte[6], 6, 6).length);
+        String ss = RequestSignHelper.sign(map,appId, secret, ts);
 
-        //System.out.println(Ping.getMtu("127.0.0.1", "212.64.81.230"));
-         
-       /* System.out.println(normalizeTicksPerWheel(13));
-     
-        HashedWheelTimer wheelTimer = new HashedWheelTimer();
-        wheelTimer.newTimeout(new io.netty.util.TimerTask() {
-            @Override
-            public void run(Timeout timeout) throws Exception {
-                System.out.println(Thread.currentThread().getId() + " is out in  "+System.nanoTime()/1000000);
-            }
-        }, 3, TimeUnit.SECONDS);
+        System.out.println("online: " + ss);
 
-        wheelTimer.newTimeout(new io.netty.util.TimerTask() {
-            @Override
-            public void run(Timeout timeout) throws Exception {
-                System.out.println(Thread.currentThread().getId() + " is out in  "+System.nanoTime()/1000000);
-            }
-        }, 1, TimeUnit.SECONDS);
-
-        wheelTimer.newTimeout(new io.netty.util.TimerTask() {
-            @Override
-            public void run(Timeout timeout) throws Exception {
-                System.out.println(Thread.currentThread().getId() + " is out in  "+System.nanoTime()/1000000);
-            }
-        }, 10, TimeUnit.MILLISECONDS);
-
-        Thread.sleep(5000);
-        wheelTimer.stop();*/
+        test(appId, secret, ts, map);
 
 
-        // int[] ints=  generateRedPacket(327, 1 * 100, 10 * 100, 3);
-        //System.out.println( BigDecimal.valueOf(0).compareTo(BigDecimal.ZERO)<=0);
-        //
-        //System.out.println(getUserTaskIdListTodayKey(1000,LocalDate.now()));
-        //int[] ints = generateRedPacket(5000 * 100, 50, 2000, 2000);
-
-        //System.out.println(BigDecimal.valueOf(0.01).multiply(BigDecimal.valueOf(879)) );
     }
 
     private static String getUserTaskIdListTodayKey(int userId, LocalDate localDate) {
