@@ -27,8 +27,7 @@ public class React {
 
     public static void main(String[] args) throws InterruptedException {
 
-        create1();
-        Thread.sleep(500000000);
+
         System.out.println("exit");
 
     }
@@ -348,7 +347,7 @@ public class React {
     }
 
     public static void parallel() {
-        Flux.range(1, 2000)
+        Flux.range(1, 20)
                 .parallel().runOn(Schedulers.parallel())
                 .subscribe(i ->
                         System.out.println(Thread.currentThread().getName() + " -> " + i));

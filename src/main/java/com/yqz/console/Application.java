@@ -1,24 +1,27 @@
 package com.yqz.console;
 
 
-import com.fasterxml.jackson.databind.KeyDeserializer;
-import com.fasterxml.jackson.databind.deser.DataFormatReaders;
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.gson.Gson;
+import com.google.common.base.Strings;
+import com.yqz.console.model.CollectedData;
 import com.yqz.console.model.FeedBase;
+import com.yqz.console.model.ReturnValue;
+import com.yqz.console.model.SerialItem;
 import com.yqz.console.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -201,21 +204,22 @@ public class Application {
 
 
     public static void main(String[] args) throws Exception {
+        Thread main=      Thread.currentThread();
+        LockSupport.unpark(main);
+        Executors.newScheduledThreadPool(1).schedule(()->{LockSupport.unpark(main);}, 3, TimeUnit.SECONDS);
+        LockSupport.park();
 
-        LinkedHashMap<Integer, Integer> map = new LinkedHashMap<>();
-        map.put(3450, 1);
-        map.put(5637, 1);
-        map.put(4563, 1);
+
+
+        System.out.println("ehll");
+
+
         //map.forEach((k, v) -> System.out.println(k));
 
        /* String s = "{\"content\":\"～《腿很高》哦～&哦&iu月^_^\\(^^)\uD83D\uDE07\uD83D\uDE02\uD83D\uDE43\uD83D\uDE1D\uD83E\uDDD0\"}";
         Object o = JacksonHelper.deserialize(s,LL.class);*/
 
-        Map<String, String> map1 = new HashMap<>();
-        map1.put("content", "～《腿很高》哦～&哦&iu月^_^\\(^^)\uD83D\uDE07\uD83D\uDE02\uD83D\uDE43\uD83D\uDE1D\uD83E\uDDD0");
-        String s = JacksonHelper.serialize(map1);
 
-        System.out.println(JacksonHelper.deserialize(s));
         //long n = Integer.MAX_VALUE + 1;
         //byte[] bytes = ByteArrayHelper.valueToBytes(ByteOrder.BIG_ENDIAN, n, 4);
         //System.out.println(ByteArrayHelper.bytesToValue(ByteOrder.BIG_ENDIAN, bytes, 0, 4));
