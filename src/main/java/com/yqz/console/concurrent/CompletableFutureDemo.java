@@ -21,5 +21,16 @@ public class CompletableFutureDemo {
             });
         }).join();
         System.out.println(result);
+
+//        CompletableFuture<Integer> future = CompletableFuture.supplyAsync(() -> {
+//            return 10;
+//        });
+//        CompletableFuture<String> f = future.thenCombine(CompletableFuture.supplyAsync(() -> {
+//            return 20;
+//        }),(x,y) -> {return "计算结果："+x+y;});
+//        System.out.println(f.get());
+
+
+
     }
 }

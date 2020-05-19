@@ -1,21 +1,36 @@
 package com.yqz.console;
 
+import com.google.common.base.Stopwatch;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
 public class Ping {
 
-    public static boolean ping(String ipAddress) throws Exception {
+    public static void main(String[] args) {
+        Stopwatch stopwatch=Stopwatch.createStarted();
+        Arrays.stream(getLostRateAndAvgRtt("192.168.21.121", "140.143.248.243")).forEach(System.out::println);
+        System.out.println(stopwatch.elapsed(TimeUnit.MILLISECONDS));
+    }
+
+    public static boolean ping(String ipAddress) {
         int timeOut = 3000;
-        boolean status = InetAddress.getByName(ipAddress).isReachable(timeOut);
+        boolean status = false;
+        try {
+            status = InetAddress.getByName(ipAddress).isReachable(timeOut);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
         return status;
     }
 
@@ -31,10 +46,10 @@ public class Ping {
 
     private static int getMtu(String localIp, String remoteIp, int min, int max) {
         //探测最大端是否可以
-        if (pingBySizeLimit(localIp, remoteIp, max)) {
+        if (pingWithBufferSizeLimit(localIp, remoteIp, max)) {
             return max;
-        } else if (pingBySizeLimit(localIp, remoteIp, min)) {//探测最小端是否可以
-            if (pingBySizeLimit(localIp, remoteIp, (min + max) / 2)) {//中间是否可行
+        } else if (pingWithBufferSizeLimit(localIp, remoteIp, min)) {//探测最小端是否可以
+            if (pingWithBufferSizeLimit(localIp, remoteIp, (min + max) / 2)) {//中间是否可行
                 //后半段
                 return getMtu(localIp, remoteIp, (min + max) / 2, max - 1);
             } else {
@@ -51,10 +66,8 @@ public class Ping {
     }
 
 
-    public static boolean pingBySizeLimit(String localIp, String remoteIp, int bufferSize) {
+    public static boolean pingWithBufferSizeLimit(String localIp, String remoteIp, int bufferSize) {
         String[] localIps = new String[]{"127.0.0.1", "localhost", "0.0.0.0", "::1"};
-        BufferedReader in = null;
-        Runtime r = Runtime.getRuntime();
 
         String pingCommand = "ping " + remoteIp + " -n 1 -w 1000 -f -l " + bufferSize;
 
@@ -62,27 +75,46 @@ public class Ping {
             pingCommand += " -S " + localIp;
         }
 
+        String s = execPing(pingCommand);
+        if (s == null || s.isEmpty())
+            return false;
+        String[] ss = s.split(System.lineSeparator());
+        for (String line : ss) {
+            if (success(line))
+                return true;
+        }
+        return false;
+
+    }
+
+
+    public static String execPing(String pingCommand) {
+        BufferedReader in = null;
+        Runtime r = Runtime.getRuntime();
 
         try {
             log.info(pingCommand);
 
             Process p = r.exec(pingCommand);
             if (p == null) {
-                return false;
+                return null;
             }
-            in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            in = new BufferedReader(new InputStreamReader(p.getInputStream(), Charset.forName("gbk")));
 
             String line;
 
+            StringBuilder stringBuilder = new StringBuilder();
+
             while ((line = in.readLine()) != null) {
-                if (success(line)) {
-                    return true;
-                }
+                stringBuilder.append(line).append(System.lineSeparator());
             }
-            return false;
+
+
+            return stringBuilder.toString();
+
         } catch (Exception e) {
             log.error(e.getMessage());
-            return false;
+
         } finally {
             try {
                 in.close();
@@ -90,6 +122,39 @@ public class Ping {
                 log.error(e.getMessage());
             }
         }
+
+        return null;
+    }
+
+
+    public static int[] getLostRateAndAvgRtt(String localIp, String remoteIp) {
+        String pingCommand = "ping " + remoteIp + " -n 3  " + " -S " + localIp;
+        String s = execPing(pingCommand);
+        System.out.println(s);
+        if (s == null || s.isEmpty())
+            return new int[0];
+
+        int[] results = new int[2];
+        String[] ss = s.split(System.lineSeparator());
+        Pattern patternLostRate = Pattern.compile("(\\d+)% 丢失", Pattern.CASE_INSENSITIVE);
+        Pattern patternRtt = Pattern.compile("平均 = (\\d+)ms", Pattern.CASE_INSENSITIVE);
+        for (String line : ss) {
+            //丢包率
+
+            Matcher matcherLostRate = patternLostRate.matcher(line);
+            while (matcherLostRate.find()) {
+                results[0] =Integer.valueOf(matcherLostRate.group(1));
+            }
+            //average rtt
+
+            Matcher matcherRtt = patternRtt.matcher(line);
+            while (matcherRtt.find()) {
+                results[1] = Integer.valueOf(matcherRtt.group(1));
+            }
+
+        }
+        return results;
+
     }
 
 

@@ -26,10 +26,11 @@ public class React {
     static Logger logger = LoggerFactory.getLogger(React.class);
 
     public static void main(String[] args) throws InterruptedException {
-
+        Flux.just(1, 2)
+                .concatWith(Mono.error(new IllegalStateException()))
+                .subscribe(System.out::println, System.err::println);
 
         System.out.println("exit");
-
     }
 
     public static void zipWidth() {
@@ -172,21 +173,24 @@ public class React {
                 },
                 // Overflow (backpressure) handling, default is BUFFER
                 FluxSink.OverflowStrategy.DROP);
+
         flux.log().publishOn(Schedulers.newSingle("newSingle"), 1);
+
         flux.subscribe(p -> {
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    System.out.println(p);
+                    System.out.println("received: "+p);
+                    myMessageProcessor.receive(System.currentTimeMillis()+"");
                 },
                 System.out::println,
                 () -> System.out.println("completion")
-                , p -> p.request(5)//仅订阅了3条消息
+                , p -> p.request(10)//仅订阅了3条消息
         );
 
-        AtomicInteger atomicInteger = new AtomicInteger(10);
+       /* AtomicInteger atomicInteger = new AtomicInteger(10);
         Thread thread = new Thread() {
             @Override
             public void run() {
@@ -201,7 +205,7 @@ public class React {
             }
         };
         thread.run();
-        thread.join();
+        thread.join();*/
     }
 
     public static void schedulers() {
@@ -347,7 +351,7 @@ public class React {
     }
 
     public static void parallel() {
-        Flux.range(1, 20)
+        Flux.range(1, 2000)
                 .parallel().runOn(Schedulers.parallel())
                 .subscribe(i ->
                         System.out.println(Thread.currentThread().getName() + " -> " + i));

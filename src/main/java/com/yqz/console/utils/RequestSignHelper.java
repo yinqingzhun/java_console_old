@@ -17,6 +17,7 @@ public class RequestSignHelper {
             sb.append(m.getKey()).append(m.getValue());
         }
         sb.append(secret);
+        System.out.println("before:"+sb);
         String sign = null;
         try {
             sign = DigestUtils.md5DigestAsHex(sb.toString().getBytes("utf-8"));
@@ -63,26 +64,5 @@ public class RequestSignHelper {
             sb.deleteCharAt(sb.length() - 1);
         }
         return sb.toString();
-    }
-
-    public static void main(String[] args) {
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("code", "eyJpdiI6IkNQdkhGVnV1MVQzRHdaaEdGNkM5RVE9PSIsInZhbHVlIjoiY1pXM1ROYlpPS3ZkTm1BZkhYSERteXVhTkpMUTlDS0hraWpOTnZPd01Xaz0iLCJtYWMiOiIyYmIxZjViN2VmN2M1ZTAxNThkZDhkNmMzMDI4NzYyNTY4MjVjNDAyZDhiZDcyZGEzZGRmZDBjOTAyZGVmMTJjIn0=");
-        map.put("roomid", "11");
-        map.put("type", "1");
-
-        String appId = "live.open.jkx.i";
-        String secret = "7jC2^t%^36"; //"riX0C07R";
-
-//        appId="testid";
-//        secret="testkey";
-
-        long ts = new Date().getTime() / 1000;
-        String ss = RequestSignHelper.signAndSerializeParams(map, appId, secret);;
-
-        System.out.println("online: " + ss);
-
-
     }
 }
