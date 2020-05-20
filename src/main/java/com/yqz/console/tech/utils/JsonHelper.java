@@ -2,6 +2,8 @@ package com.yqz.console.tech.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,6 +55,26 @@ public class JsonHelper {
     public static <T> T deserialize(String s, TypeReference clazz) {
         try {
             T t = mapper.readValue(s, clazz);
+            return t;
+        } catch (IOException e) {
+            log.error(s+", "+e.getMessage());
+        }
+        return null;
+    }
+
+    public static <T> T deserialize(String s, JavaType clazz) {
+        try {
+            T t = mapper.readValue(s, clazz);
+            return t;
+        } catch (IOException e) {
+            log.error(s+", "+e.getMessage());
+        }
+        return null;
+    }
+
+    public static <T> T deserialize(String s, Class<?> parametrized, Class<?>... parameterClasses) {
+        try {
+            T t = mapper.readValue(s, TypeFactory.defaultInstance().constructParametricType(parametrized,parameterClasses));
             return t;
         } catch (IOException e) {
             log.error(s+", "+e.getMessage());
