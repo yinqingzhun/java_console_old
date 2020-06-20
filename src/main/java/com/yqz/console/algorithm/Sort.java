@@ -30,8 +30,8 @@ public class Sort {
         for (int i = 0; i < 100; i++) {
             Flux.range(0, 10).buffer(10).subscribe(list -> {
                 int[] array = shuffle(list.stream().mapToInt(Integer::intValue).toArray());
-                System.out.println("---|" + toString(array));
-                fast(array, 0, array.length - 1);
+//                System.out.println("---|" + toString(array));
+                insert(array);
                 print(array);
 
             });
@@ -49,6 +49,77 @@ public class Sort {
 
     }
 
+    /**
+     * 选择排序，每次产生一个最小值
+     *
+     * @param a
+     * @param left
+     * @param right
+     */
+    static void select(int[] a, int left, int right) {
+        for (int i = 0; i < a.length; i++) {
+            int minIndex = i;
+            for (int j = i + 1; j < a.length; j++) {
+                if (a[j] < a[minIndex]) {
+                    minIndex = j;
+                }
+            }
+            if (i != minIndex)
+                swap(a, i, minIndex);
+        }
+    }
+
+    /**
+     * 插入排序
+     *
+     * @param a
+     */
+    static void insert(int[] a) {
+        int len = 1;
+        for (int right = len; right < a.length; right++) {
+            int target = a[right];
+           if (target < a[right-1]) {
+            int left = len - 1;
+            for (; left >= 0; left--) {
+                if (target > a[left]) {
+                    break;
+                }
+                a[left + 1] = a[left];
+            }
+            a[left + 1] = target;
+            }
+            len++;
+        }
+    }
+
+    static void quick(int[] a, int left, int right)//分治法 子问题求解
+    {
+        if (left < right) {
+            int i = left, j = right;
+            int keyValue = a[left];
+            while (i < j) {
+                while (i < j && a[j] > keyValue) {
+                    j--;
+                }
+                if (i < j) {
+                    a[i++] = a[j];
+                }
+                while (i < j && a[i] < keyValue) {
+                    i++;
+                }
+                if (i < j) {
+                    a[j--] = a[i];
+                }
+
+            }
+            a[i] = keyValue;
+
+            quick(a, left, i - 1);
+
+            quick(a, i + 1, right);
+        }
+    }
+
     /*
      * 快速排序
      *
@@ -57,14 +128,14 @@ public class Sort {
      *     l -- 数组的左边界(例如，从起始位置开始排序，则l=0)
      *     r -- 数组的右边界(例如，排序截至到数组末尾，则r=a.length-1)
      */
-    public static void quickSort(int[] a, int l, int r) {
+    public static void quickSort(int[] a, int left, int right) {
 
-        if (l < r) {
+        if (left < right) {
             int i, j, x;
 
-            i = l;
-            j = r;
-            x = a[i];
+            i = left;
+            j = right;
+            x = a[left];
             while (i < j) {
                 while (i < j && a[j] > x)
                     j--; // 从右向左找第一个小于x的数
@@ -76,8 +147,8 @@ public class Sort {
                     a[j--] = a[i];
             }
             a[i] = x;
-            quickSort(a, l, i - 1); /* 递归调用 */
-            quickSort(a, i + 1, r); /* 递归调用 */
+            quickSort(a, left, i - 1); /* 递归调用 */
+            quickSort(a, i + 1, right); /* 递归调用 */
         }
     }
 
@@ -91,19 +162,13 @@ public class Sort {
         if (from >= to || from < 0 || to >= a.length)
             return;
 
-       /* if (to - from == 2) {
-            if (a[from] > a[to - 1])
-                swap(a, from, to - 1);
-            return;
-        }*/
-
 
         int leftIndex = from;
         int rightIndex = to - 1;
         int originRightIndex = rightIndex;
 
         int keyValue = a[to];
-        boolean swap = false;
+
         while (leftIndex < rightIndex) {
             while (leftIndex < rightIndex + 1 && a[leftIndex] < keyValue) {
                 leftIndex++;
@@ -113,14 +178,10 @@ public class Sort {
                 rightIndex--;
             }
 
-            if (leftIndex < rightIndex && swap(a, leftIndex, rightIndex)) {
-                swap = true;
-            }
+            if (leftIndex < rightIndex)
+                swap(a, leftIndex, rightIndex);
         }
 
-       /* if (!swap && leftIndex == originRightIndex && a[originRightIndex] < keyValue) {
-            leftIndex=to-1;
-        }*/
 
         if (a[leftIndex] > keyValue)
             swap(a, leftIndex, to);

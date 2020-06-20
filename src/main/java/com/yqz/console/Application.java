@@ -1,39 +1,19 @@
 package com.yqz.console;
 
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ser.std.CollectionSerializer;
 import com.google.common.base.Preconditions;
-import com.sun.org.apache.bcel.internal.generic.NEW;
-import com.yqz.console.model.BankResult;
 import com.yqz.console.model.FeedBase;
-import com.yqz.console.model.RequestBindResult;
-import com.yqz.console.model.ReturnValue;
-import com.yqz.console.util.ByteArrayHelper;
 import com.yqz.console.util.DateHelper;
 import com.yqz.console.util.HashHelper;
-import com.yqz.console.utils.ByteUtils;
-import com.yqz.console.utils.JsonHelper;
-import groovy.lang.Tuple;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.cli.Digest;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.util.Base64Utils;
-import reactor.util.function.Tuple3;
 
 import java.math.BigDecimal;
-import java.net.InetAddress;
-import java.nio.ByteOrder;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -128,6 +108,7 @@ public class Application {
 
         return resultList;
     }
+
 
 
     public static void main(String[] args) throws Exception {

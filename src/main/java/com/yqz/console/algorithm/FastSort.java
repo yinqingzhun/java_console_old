@@ -1,4 +1,3 @@
-/*
 package com.yqz.console.algorithm;
 
 import java.util.Arrays;
@@ -9,12 +8,10 @@ public class FastSort {
 
     public static void main(String[] args) {
         int[] array = src;
-        QuickSort(array, 0, array.length);
+        quickSort(array, 0, array.length-1);
         print(array);
-       */
-/* 
         quickSort(array, 0, array.length - 1);
-        print(array);*//*
+        print(array);
 
 
     }
@@ -23,26 +20,33 @@ public class FastSort {
         System.out.println(Arrays.stream(a).mapToObj(p -> String.valueOf(p)).collect(Collectors.reducing((m, n) -> String.valueOf(m) + "," + String.valueOf(n))).orElse(""));
     }
 
-    static int PartSort1(int[] a, int left, int right) {
-        int key = right;
-        while (left < right) {
-            while (left < right && a[left] <= a[key])
-                ++left;
-            while (left < right && a[right] >= a[key])
-                --right;
-            swap(a, left, right);
-        }
-        swap(a, left, key);
-        return left;
-    }
 
-    static void QuickSort(int[] a, int left, int right)//分治法 子问题求解
+    static void quickSort(int[] a, int left, int right)//分治法 子问题求解
     {
-        if (left >= right)
-            return;
-        int key = PartSort1(a, left, right);
-        QuickSort(a, left, key - 1);
-        QuickSort(a, key + 1, right);
+        if (left < right) {
+            int i = left, j = right;
+            int keyValue = a[left];
+            while (i < j) {
+                while (i < j && a[j] > keyValue) {
+                    j--;
+                }
+                if (i < j) {
+                    a[i++] = a[j];
+                }
+                while (i < j && a[i] < keyValue) {
+                    i++;
+                }
+                if (i < j) {
+                    a[j--] = a[i];
+                }
+
+            }
+            a[i] = keyValue;
+
+            quickSort(a,left,i-1);
+
+            quickSort(a,i+1,right);
+        }
     }
 
     public static void swap(int[] array, int i, int j) {
@@ -53,4 +57,3 @@ public class FastSort {
         }
     }
 }
-*/
